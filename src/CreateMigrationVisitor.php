@@ -9,6 +9,7 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
+
 namespace Dreamyi12\ReverseMigration;
 
 use Hyperf\Database\Commands\ModelOption;
@@ -55,13 +56,12 @@ class CreateMigrationVisitor extends NodeVisitorAbstract
                                             $result = [];
                                             $isAutoIncrement = false;
                                             foreach ($this->columns as $column) {
-                                                if (! $isAutoIncrement) {
+                                                if (!$isAutoIncrement) {
                                                     $isAutoIncrement = $this->isAutoIncrement($column);
                                                 }
 
                                                 $result[] = $this->createStmtFromColumn($column);
                                             }
-
                                             return array_merge(
                                                 $result,
                                                 $this->createStmtFromIndexes($isAutoIncrement),
@@ -125,28 +125,33 @@ class CreateMigrationVisitor extends NodeVisitorAbstract
         $type = match ($column->getType()) {
             'bigint' => 'bigInteger',
             'int' => 'integer',
+            'smallint' => 'smallint',
             'tinyint' => 'tinyInteger',
             'varchar' => 'string',
+            'char' => 'char',
             'datetime' => 'dateTime',
-            'decimal' => 'decimal',
+            'decimal', 'double', 'float' => 'decimal',
             'date' => 'date',
+            'text' => 'text',
+            'longtext' => 'longtext',
+            'mediumint' => 'mediumint',
             'timestamp' => 'timestamp',
             'json' => 'json',
         };
         $extra = [];
         $columnItem = $this->getColumnItem($column->getName());
         if ($this->isAutoIncrement($column)) {
-            $extra['autoIncrement'] = true;
+            $extra[] = new Node\Expr\ArrayItem(new Node\Scalar\LNumber(1), new Node\Scalar\String_('autoIncrement'));
         }
         if (str_contains($columnItem['column_type'], 'unsigned')) {
-            $extra['unsigned'] = true;
+            $extra[] = new Node\Expr\ArrayItem(new Node\Scalar\LNumber(1), new Node\Scalar\String_('unsigned'));
         }
-        if ($type === 'string') {
-            $extra['length'] = $columnItem['character_maximum_length'];
+        if ($type === 'string' || $type === 'char') {
+            $extra[] = new Node\Expr\ArrayItem(new Node\Scalar\LNumber($columnItem['character_maximum_length']), new Node\Scalar\String_('length'));
         }
         if ($type === 'decimal') {
-            $extra['total'] = $columnItem['numeric_precision'];
-            $extra['places'] = $columnItem['numeric_scale'];
+            $extra[] = new Node\Expr\ArrayItem(new Node\Scalar\LNumber($columnItem['numeric_precision']), new Node\Scalar\String_('total'));
+            $extra[] = new Node\Expr\ArrayItem(new Node\Scalar\LNumber($columnItem['numeric_scale']), new Node\Scalar\String_('places'));
         }
         return new Node\Expr\MethodCall(
             new Node\Expr\Variable('table'),
@@ -214,7 +219,7 @@ class CreateMigrationVisitor extends NodeVisitorAbstract
     private function createStmtFromComment()
     {
         $comment = $this->tableData->getComment();
-        if (! $comment) {
+        if (!$comment) {
             return [];
         }
         return [
@@ -258,6 +263,9 @@ class CreateMigrationVisitor extends NodeVisitorAbstract
                 new Node\Expr\Variable('table'),
                 new Node\Identifier($method),
                 value(static function () use ($columns, $keyName) {
+                    foreach ($columns as &$item) {
+                        $item = new Node\Scalar\String_($item);
+                    }
                     $result = [
                         PhpParser::getInstance()->getExprFromValue($columns),
                     ];

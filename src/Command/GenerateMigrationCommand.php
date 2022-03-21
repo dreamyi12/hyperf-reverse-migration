@@ -57,7 +57,7 @@ class GenerateMigrationCommand extends HyperfCommand
         $this->resolver = $this->container->get(ConnectionResolverInterface::class);
         $this->config = $this->container->get(ConfigInterface::class);
 
-        try {
+//        try {
             $generator = new MigrationGenerator(
                 $this->container->get(ConnectionResolverInterface::class),
                 $this->container->get(ConfigInterface::class),
@@ -65,8 +65,8 @@ class GenerateMigrationCommand extends HyperfCommand
             );
 
             $generator->generate($pool, $path, $table);
-        } catch (\Throwable $e) {
-            $this->error("<error>[ERROR] Created Migration:</error> {$e->getMessage()}");
-        }
+//        } catch (\Throwable $e) {
+//            $this->error("<error>[ERROR] Created Migration:</error> {$e->getMessage()}");
+//        }
     }
 }

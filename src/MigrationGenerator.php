@@ -147,7 +147,6 @@ class MigrationGenerator
 
         $code = file_get_contents($stub);
         $stmts = $this->astParser->parse($code);
-
         $traverser = new NodeTraverser();
         $traverser->addVisitor(new CreateMigrationVisitor($table, $option, $columns, $tableData));
         $stmts = $traverser->traverse($stmts);
