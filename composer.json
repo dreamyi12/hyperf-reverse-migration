@@ -6,7 +6,7 @@
         "php",
         "hyperf"
     ],
-    "description": "",
+    "description": "Hyperf data reverse migration tool",
     "autoload": {
         "psr-4": {
             "Dreamyi12\\ReverseMigration\\": "src/"
