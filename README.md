@@ -24,3 +24,5 @@ php bin/hyperf.php gen:reverse-migration -table=XXXXXX
 
 //迁移文件生成路径可以由-path 指定
 ```
+
+欢迎有问题随时提问
